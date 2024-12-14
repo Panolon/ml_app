@@ -11,6 +11,42 @@ def run():
         st.write(f"Dataset shape: {data.shape}")
 
         features = data.copy()
+
+        #handle na values
+        if features.isnull().sum().sum() > 0:
+            st.sidebar.header("Handle Missing Values")
+            missing_option = st.sidebar.radio(
+                "Choose how to handle missing values:",
+                ("Remove Rows", "Remove Columns", "Impute Values"),
+            )
+            if missing_option == "Remove Rows":
+                features = features.dropna()
+                st.write("Rows with missing values removed:")
+            elif missing_option == "Remove Columns":
+                features = features.dropna(axis=1)
+                st.write("Columns with missing values removed:")
+            elif missing_option == "Impute Values":
+                impute_option = st.sidebar.selectbox(
+                    "Choose imputation method:", ("Mean", "Median", "Mode", "Custom Value")
+                )
+    
+                if impute_option == "Mean":
+                    features = features.fillna(features.mean())
+                    st.write("Missing values imputed with Mean:")
+    
+                elif impute_option == "Median":
+                    features = features.fillna(features.median())
+                    st.write("Missing values imputed with Median:")
+
+                elif impute_option == "Mode":
+                    features = features.fillna(features.mode().iloc[0])
+                    st.write("Missing values imputed with Mode:")
+    
+                elif impute_option == "Custom Value":
+                    custom_value = st.sidebar.number_input("Enter custom value for imputation:")
+                    features = features.fillna(custom_value)
+                    st.write(f"Missing values imputed with custom value: {custom_value}")
+
         # select index if necessary
         index_col = st.sidebar.multiselect("Select Index Column", options=features.columns, max_selections=1,default=None)
         if index_col:

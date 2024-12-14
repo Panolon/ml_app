@@ -242,48 +242,4 @@ def run():
             ax.grid()
             st.pyplot(fig)
 
-        with col1:
-            # Decision Boundary Plot
-            if features.shape[1] > 2:
-                st.write("Reducing features to 2 for decision boundary plot using PCA.")
-                pca = PCA(n_components=2)
-                X_test_2d = pca.fit_transform(X_test)
-                X_train_2d = pca.transform(X_train)
-            else:
-                X_test_2d = X_test.values
-                X_train_2d = X_train.values
-        
-            x_min, x_max = X_test_2d[:, 0].min() - 1, X_test_2d[:, 0].max() + 1
-            y_min, y_max = X_test_2d[:, 1].min() - 1, X_test_2d[:, 1].max() + 1
-            xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.01), np.arange(y_min, y_max, 0.01))
-
-            classifier_2d = RandomForestClassifier(
-                random_state=random_state,
-                n_estimators=n_estimators,
-                max_features=max_features,
-                bootstrap=bootstrap,
-                oob_score=oob_score,
-                class_weight=class_weight,
-                criterion=criterion,
-            )
-            classifier_2d.fit(X_train_2d,y_train)
-            Z = classifier_2d.predict(np.c_[xx.ravel(), yy.ravel()])
-            Z = Z.reshape(xx.shape)
-        
-            fig, ax = plt.subplots(figsize=(8, 6))
-            ax.contourf(xx, yy, Z, alpha=0.8, cmap='viridis')
-        
-            # Plot test points
-            for idx, label in enumerate(np.unique(y_test)):
-                ax.scatter(
-                    X_test_2d[y_test == label, 0],
-                    X_test_2d[y_test == label, 1],
-                    label=f"Class {label}",
-                    edgecolor='k',
-                    s=10,
-                )
-        
-            ax.set_title("Decision Boundaries")
-            ax.legend()
-            st.pyplot(fig)
 

@@ -14,6 +14,42 @@ def run():
 
         features = data.copy()
 
+        #handle na values
+        if features.isnull().sum().sum() > 0:
+            st.sidebar.header("Handle Missing Values")
+            missing_option = st.sidebar.radio(
+                "Choose how to handle missing values:",
+                ("Remove Rows", "Remove Columns", "Impute Values"),
+            )
+            if missing_option == "Remove Rows":
+                features = features.dropna()
+                st.write("Rows with missing values removed:")
+            elif missing_option == "Remove Columns":
+                features = features.dropna(axis=1)
+                st.write("Columns with missing values removed:")
+            elif missing_option == "Impute Values":
+                impute_option = st.sidebar.selectbox(
+                    "Choose imputation method:", ("Mean", "Median", "Mode", "Custom Value")
+                )
+    
+                if impute_option == "Mean":
+                    features = features.fillna(features.mean())
+                    st.write("Missing values imputed with Mean:")
+    
+                elif impute_option == "Median":
+                    features = features.fillna(features.median())
+                    st.write("Missing values imputed with Median:")
+
+                elif impute_option == "Mode":
+                    features = features.fillna(features.mode().iloc[0])
+                    st.write("Missing values imputed with Mode:")
+    
+                elif impute_option == "Custom Value":
+                    custom_value = st.sidebar.number_input("Enter custom value for imputation:")
+                    features = features.fillna(custom_value)
+                    st.write(f"Missing values imputed with custom value: {custom_value}")
+
+
         # select index if necessary
         index_col = st.sidebar.multiselect("Select Index Column", 
                                            options=features.columns,
@@ -60,6 +96,14 @@ def run():
         # Hyperparameter Tuning Widget
         hyper_tune = st.sidebar.checkbox("Hyper Tune Parameters")
 
+        # if labels are known calculate adjusted rand score
+        supervised = st.sidebar.checkbox("I know the labels!",value=False)
+        if supervised:
+            labels = st.sidebar.selectbox("Select target column",
+                                             options=features.columns,
+                                             index=len(features.columns)-1
+                                            )
+        
         random_state = st.sidebar.slider("Random State", value=42, step=1)
         n_clusters = st.sidebar.slider("Number of Clusters", min_value=2, max_value=30, value=8, step=1)
         n_init =  st.sidebar.slider("Number of runs with different centroid seeds", min_value=2, max_value=100, value=10, step=1)
@@ -76,17 +120,33 @@ def run():
          # Metrics Calculation
         silhouette_avg = silhouette_score(features, y_kmeans)
         silhouette_vals = silhouette_samples(features, y_kmeans)
+        ch_index = calinski_harabasz_score(features, y_kmeans)
+        if supervised:
+            ari = adjusted_rand_score(features[labels], y_kmeans)
+            nmi = normalized_mutual_info_score(features[labels], y_kmeans)
+            homogeneity = homogeneity_score(features[labels], y_kmeans)
+            completeness = completeness_score(features[labels], y_kmeans)
+            v_measure = v_measure_score(features[labels], y_kmeans)
+
 
 
         col1,col2 = st.columns(2)
         with col1:
             st.subheader("Performance Metrics")
             st.write(f"Silhouette Score: {silhouette_avg:.3f}")
+            st.write(f"Calinski-Harabasz Index: {ch_index:.3f}")
+            if supervised:
+                st.write(f"Adjusted Rand Index: {ari:.3f}")
+                st.write(f"Normalized mutual info score: {nmi:.3f}")
+                st.write(f"Homogeneity: {homogeneity:.3f}")
+                st.write(f"Completeness: {completeness:.3f}")
+                st.write(f"V-measure: {v_measure:.3f}")
 
         with col2:
             # Elbow Method
             distortions = []
-            K = range(2, 11)
+            end = st.slider("Maximum number of clusters",min_value=3, max_value=int(np.sqrt(len(features))),value=10,step=1)
+            K = range(2, end)
             for k in K:
                 kmeans_model = KMeans(n_clusters=k, random_state=random_state)
                 kmeans_model.fit(features)

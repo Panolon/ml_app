@@ -23,7 +23,13 @@ from sklearn.metrics import (
     precision_recall_curve,
     classification_report,
     silhouette_score,
-    silhouette_samples
+    silhouette_samples,
+    adjusted_rand_score,
+    normalized_mutual_info_score,
+    homogeneity_score, 
+    completeness_score, 
+    v_measure_score,
+    calinski_harabasz_score
 )
 from sklearn.decomposition import PCA, KernelPCA
 from mpl_toolkits.mplot3d import Axes3D
