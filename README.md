@@ -59,7 +59,7 @@ Each task and model is implemented in a modular structure, making the app easy t
   For data preprocessing and manipulation.
 
 - **Matplotlib & Seaborn**  
-  For data visualization (if needed).
+  For data visualization.
 
 ---
 
