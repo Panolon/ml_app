@@ -1,8 +1,8 @@
 from imports import *
 
 def run():
-    st.subheader("K Means Clustering")
-    st.write("Upload your data to train a K Means algorithm.")
+    st.subheader("Agglomerative Clustering")
+    st.write("Upload your data to train  algorithm.")
     
     uploaded_file = st.sidebar.file_uploader("Upload your CSV file", type="csv")
     if uploaded_file:
@@ -103,33 +103,33 @@ def run():
                                              options=features.columns,
                                              index=len(features.columns)-1
                                             )
-        
-        random_state = st.sidebar.slider("Random State", value=42, step=1)
-        n_clusters = st.sidebar.slider("Number of Clusters", min_value=2, max_value=30, value=8, step=1)
-        n_init =  st.sidebar.slider("Number of runs with different centroid seeds", min_value=2, max_value=100, value=10, step=1)
-        algorithm = st.sidebar.selectbox("Algorithm", options=["lloyd","elkan"],index=0)
 
-        classifier = KMeans(n_clusters=n_clusters, 
-                            n_init=n_init,
-                            algorithm=algorithm,
-                            random_state=random_state
+        n_clusters = st.sidebar.slider("Number of clusters", min_value=2, max_value=30, value=8)
+        linkage_method = st.sidebar.selectbox("Linkage", options=["ward","complete","average","single"], index=0)
+        metric = st.sidebar.selectbox("Metric", options=["euclidean","l1","l2","manhattan","cosine"],index=0)
+
+        classifier = AgglomerativeClustering(n_clusters=n_clusters, 
+                            metric=metric,
+                            linkage=linkage_method
                                           )
-        y_kmeans = classifier.fit_predict(features)
+        y_agglomerative = classifier.fit_predict(features)
         
 
          # Metrics Calculation
-        silhouette_avg = silhouette_score(features, y_kmeans)
-        silhouette_vals = silhouette_samples(features, y_kmeans)
-        ch_index = calinski_harabasz_score(features, y_kmeans)
+        silhouette_avg = silhouette_score(features, y_agglomerative)
+        silhouette_vals = silhouette_samples(features, y_agglomerative)
+        ch_index = calinski_harabasz_score(features, y_agglomerative)
         if supervised:
-            ari = adjusted_rand_score(features[labels], y_kmeans)
-            nmi = normalized_mutual_info_score(features[labels], y_kmeans)
-            homogeneity = homogeneity_score(features[labels], y_kmeans)
-            completeness = completeness_score(features[labels], y_kmeans)
-            v_measure = v_measure_score(features[labels], y_kmeans)
+            ari = adjusted_rand_score(features[labels], y_agglomerative)
+            nmi = normalized_mutual_info_score(features[labels], y_agglomerative)
+            homogeneity = homogeneity_score(features[labels], y_agglomerative)
+            completeness = completeness_score(features[labels], y_agglomerative)
+            v_measure = v_measure_score(features[labels], y_agglomerative)
 
         pca = PCA(n_components=2)
         X_2d = pca.fit_transform(features)
+
+        Z = linkage(features, method=linkage_method)
 
 
         col1,col2 = st.columns(2)
@@ -146,26 +146,6 @@ def run():
                 st.write(f"V-measure: {v_measure:.3f}")
 
         with col2:
-            # Elbow Method
-            distortions = []
-            end = st.slider("Maximum number of clusters",min_value=3, max_value=int(np.sqrt(len(features))),value=10,step=1)
-            K = range(2, end)
-            for k in K:
-                kmeans_model = KMeans(n_clusters=k, random_state=random_state)
-                kmeans_model.fit(features)
-                distortions.append(kmeans_model.inertia_)
-            fig, ax = plt.subplots()
-            ax.plot(K, distortions, marker='o')
-            ax.set_title("Elbow Method")
-            ax.set_xlabel("Number of Clusters")
-            ax.set_ylabel("Distortion")
-            ax.grid()
-            st.pyplot(fig)
-            
-
-        #plots
-        col1, col2 = st.columns(2)
-        with col1:
             # Silhouette Analysis
             fig, ax = plt.subplots(figsize=(8,6))
             sns.histplot(silhouette_vals, kde=True, bins=20, ax=ax, color="green")
@@ -175,16 +155,24 @@ def run():
             ax.grid()
             st.pyplot(fig)
 
+        #plots
+        col1, col2 = st.columns(2)
+
+        with col1:
+            truncate_mode = st.slider("Truncate Mode", min_value=3, max_value=10, value=4)
+            fig, ax = plt.subplots(figsize=(10, 6))
+            dendrogram(Z, truncate_mode="level", p=truncate_mode, ax=ax)
+            ax.set_title("Hierarchical Clustering Dendrogram")
+            ax.set_xlabel("Sample Index or Cluster Size")
+            ax.set_ylabel("Distance")
+            st.pyplot(fig)
+
         with col2:
             labels = classifier.fit_predict(X_2d)
             fig, ax = plt.subplots(figsize=(8,6))
             scatter = ax.scatter(X_2d[:,0], X_2d[:,1], c=labels, cmap='viridis', alpha=0.8)
-            ax.set_title(f"K Means clustering")
+            ax.set_title(f"Agglomerative clustering")
             ax.set_xlabel(f"Principal Component 1")
             ax.set_ylabel(f"Principal Component 2")
             ax.grid()
             st.pyplot(fig)
-
-
-
- 

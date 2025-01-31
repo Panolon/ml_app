@@ -11,7 +11,8 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
-from sklearn.cluster import KMeans
+from sklearn.linear_model import LogisticRegression
+from sklearn.cluster import KMeans, AgglomerativeClustering
 from sklearn.svm import SVC
 from sklearn.metrics import (
     precision_score,
@@ -34,3 +35,4 @@ from sklearn.metrics import (
 from sklearn.decomposition import PCA, KernelPCA
 from mpl_toolkits.mplot3d import Axes3D
 import plotly.express as px
+from scipy.cluster.hierarchy import dendrogram, linkage

@@ -40,13 +40,16 @@ elif selected_task == "Classification":
 # Clustering task  ##
 #####################
 elif selected_task == "Clustering":
-    from pages.clustering import kmeans
+    from pages.clustering import kmeans,agglomerative
     st.subheader("Choose a Clustering task to proceed: ")
     
     # Select Clustering method
     selected_model = st.radio("Select a Model", ["K Means", "DBSCAN", "Agglomerative Clustering", "Gaussian Mixtures"])
     if selected_model == "K Means":
         kmeans.run()
+
+    if selected_model == "Agglomerative Clustering":
+    	agglomerative.run()
 
 
 #####################
