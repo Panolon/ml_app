@@ -16,13 +16,16 @@ if selected_task == "Home":
 # Classification task  ##
 #########################
 elif selected_task == "Classification":
-    from pages.classification import random_forest, svm, knn, naive_bayes, logistic_regression
+    from pages.classification import random_forest, xgboost, svm, knn, naive_bayes, logistic_regression
     st.subheader("Choose a Classification task to proceed: ")
 
     # Select Classifier
-    selected_model = st.radio("Select a Model", ["Random Forest", "SVM", "KNN", "Naive Bayes", "Logistic Regression"])
+    selected_model = st.radio("Select a Model", ["Random Forest", "XGBoost", "SVM", "KNN", "Naive Bayes", "Logistic Regression"])
     if selected_model == "Random Forest":
         random_forest.run()
+
+    if selected_model == "XGBoost":
+        xgboost.run()
 
     if selected_model == "KNN":
         knn.run()
