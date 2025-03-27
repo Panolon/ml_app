@@ -24,9 +24,11 @@ def run():
             if missing_option == "Remove Rows":
                 features = features.dropna()
                 st.write("Rows with missing values removed:")
+                st.write(f"New Dataset shape: {features.shape}")
             elif missing_option == "Remove Columns":
                 features = features.dropna(axis=1)
                 st.write("Columns with missing values removed:")
+                st.write(f"New Dataset shape: {features.shape}")
             elif missing_option == "Impute Values":
                 impute_option = st.sidebar.selectbox(
                     "Choose imputation method:", ("Mean", "Median", "Mode", "Custom Value")
@@ -35,19 +37,23 @@ def run():
                 if impute_option == "Mean":
                     features = features.fillna(features.mean())
                     st.write("Missing values imputed with Mean:")
+                    st.write(f"New Dataset shape: {features.shape}")
     
                 elif impute_option == "Median":
                     features = features.fillna(features.median())
                     st.write("Missing values imputed with Median:")
+                    st.write(f"New Dataset shape: {features.shape}")
 
                 elif impute_option == "Mode":
                     features = features.fillna(features.mode().iloc[0])
                     st.write("Missing values imputed with Mode:")
+                    st.write(f"New Dataset shape: {features.shape}")
     
                 elif impute_option == "Custom Value":
                     custom_value = st.sidebar.number_input("Enter custom value for imputation:")
                     features = features.fillna(custom_value)
                     st.write(f"Missing values imputed with custom value: {custom_value}")
+                    st.write(f"New Dataset shape: {features.shape}")
 
         # select index if necessary
         index_col = st.sidebar.multiselect("Select Index Column", 
@@ -85,6 +91,7 @@ def run():
         # Encoding for Target
         le = LabelEncoder()
         target = le.fit_transform(target)
+        st.write(f"Label Encoding Mapping: 0 → {le.classes_[0]},   1 → {le.classes_[1]}")
 
         # Sidebar for Feature Selection
         feature_selection = st.sidebar.radio("Select feature selection method:", ("All Features", "Random", "Specific"))
@@ -117,7 +124,7 @@ def run():
         X_train, X_test, y_train, y_test = train_test_split(features, target, test_size=test_size/100, random_state=42)
 
         random_state = st.sidebar.slider("Random State", value=42, step=1)
-        C = st.sidebar.slider("C",min_value=0., max_value=100., value=1.0, step=0.5)
+        C = st.sidebar.slider("C",min_value=0.1, max_value=10., value=1.0, step=0.1)
         penalty = st.sidebar.selectbox("Penalty", options=['None','l1','l2','elasticnet'],index=2)
         l1_ratio = st.sidebar.slider("l1 ratio",min_value=0., max_value=1., step=0.1, value=0.5)
         class_weight = st.sidebar.selectbox("class weight", options=[None,'balanced'], index=1)
@@ -134,7 +141,8 @@ def run():
             C=C,
             penalty=penalty,
             class_weight=class_weight,
-            l1_ratio=l1_ratio
+            l1_ratio=l1_ratio,
+            solver='saga'
         )
         #train classifier
         classifier.fit(X_train, y_train)
@@ -166,7 +174,7 @@ def run():
                 st.write(f"ROC-AUC Score: {roc_auc:.3f}")
             st.write(cm)
         with col2:
-            st.write("Classification report")
+            st.subheader("Classification report")
             st.dataframe(report.style.format({"precision": "{:.2f}", "recall": "{:.2f}", "f1-score": "{:.2f}", "support":"{:.2f}"}))
 
 
@@ -222,6 +230,39 @@ def run():
                 ax.grid()
                 st.pyplot(fig)
 
+        with col1:
+            # Get coefficients and feature names
+            coefficients = classifier.coef_[0]
+            feature_names = X_train.columns
+            
+            # Create DataFrame with coefficients
+            coef_df = pd.DataFrame({
+                'Feature': feature_names,
+                'Coefficient': coefficients,
+                'Abs_Coefficient': np.abs(coefficients)  # For sorting by magnitude
+            }).sort_values('Abs_Coefficient', ascending=False)
+            
+            # Slider for number of features to show
+            size = st.slider("Top Features Selected", min_value=1, 
+                            max_value=len(coef_df), value=10, step=1)
+            
+            # Create the plot
+            fig, ax = plt.subplots(figsize=(8, 6))
+            sns.barplot(x='Coefficient', y='Feature',
+                    data=coef_df.iloc[0:size], 
+                    palette=['red' if x < 0 else 'green' for x in coef_df.iloc[0:size]['Coefficient']],
+                    ax=ax)
+            
+            # Add vertical line at zero
+            ax.axvline(x=0, color='gray', linestyle='--')
+            
+            # Customize plot
+            ax.set_title("Logistic Regression Coefficients")
+            ax.set_xlabel("Coefficient Value (Log Odds)")
+            ax.set_ylabel("Feature")
+            ax.grid(True, axis='x', alpha=0.3)
+            
+            st.pyplot(fig)
 
         with col2:
             # Certainty Plot

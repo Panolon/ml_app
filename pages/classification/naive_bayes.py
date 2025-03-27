@@ -23,9 +23,11 @@ def run():
             if missing_option == "Remove Rows":
                 features = features.dropna()
                 st.write("Rows with missing values removed:")
+                st.write(f"New Dataset shape: {features.shape}")
             elif missing_option == "Remove Columns":
                 features = features.dropna(axis=1)
                 st.write("Columns with missing values removed:")
+                st.write(f"New Dataset shape: {features.shape}")
             elif missing_option == "Impute Values":
                 impute_option = st.sidebar.selectbox(
                     "Choose imputation method:", ("Mean", "Median", "Mode", "Custom Value")
@@ -34,19 +36,23 @@ def run():
                 if impute_option == "Mean":
                     features = features.fillna(features.mean())
                     st.write("Missing values imputed with Mean:")
+                    st.write(f"New Dataset shape: {features.shape}")
     
                 elif impute_option == "Median":
                     features = features.fillna(features.median())
                     st.write("Missing values imputed with Median:")
+                    st.write(f"New Dataset shape: {features.shape}")
 
                 elif impute_option == "Mode":
                     features = features.fillna(features.mode().iloc[0])
                     st.write("Missing values imputed with Mode:")
+                    st.write(f"New Dataset shape: {features.shape}")
     
                 elif impute_option == "Custom Value":
                     custom_value = st.sidebar.number_input("Enter custom value for imputation:")
                     features = features.fillna(custom_value)
                     st.write(f"Missing values imputed with custom value: {custom_value}")
+                    st.write(f"New Dataset shape: {features.shape}")
 
 
 
