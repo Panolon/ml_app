@@ -186,7 +186,7 @@ def run():
             fig, ax = plt.subplots(figsize=(8,6))
             sns.heatmap(cm_normalized, annot=True, 
                         fmt=".2f", 
-                        cmap="viridis",
+                        cmap="YlGn",
                         cbar=False, 
                         annot_kws={"size":14},
                         linewidths=0.5,
@@ -198,7 +198,7 @@ def run():
         with col2:
             # Scatter Plot: (Probabilities)
             fig, ax = plt.subplots(figsize=(8,6))
-            ax.scatter(y_proba[:, 0], y_proba[:, 1], alpha=0.6, c=y_test)
+            ax.scatter(y_proba[:, 0], y_proba[:, 1], alpha=0.6, c=y_test, cmap='RdYlGn')
             ax.plot([0,1],[.5,.5], linestyle='dashed',color='black')
             ax.plot([0.5,0.5],[0,1], linestyle='dashed',color='black')
             ax.set_xlabel("Probability of Class 0")
@@ -210,8 +210,8 @@ def run():
         with col1:
             # Precision-Recall Plot
             fig, ax = plt.subplots(figsize=(8,6))
-            ax.plot(thresholds1, precisions[:-1], label="Precision", color="b")
-            ax.plot(thresholds1, recalls[:-1], label="Recall", color="r")
+            ax.plot(thresholds1, precisions[:-1], label="Precision", color="g")
+            ax.plot(thresholds1, recalls[:-1], label="Recall", color="y")
             ax.set_xlabel("Threshold")
             ax.set_title("Precision-Recall Curve")
             ax.legend()
@@ -221,7 +221,7 @@ def run():
         with col2:
             # ROC-AUC Curve
             fig, ax = plt.subplots(figsize=(8,6))
-            ax.plot(fpr, tpr, label=f"ROC-AUC = {roc_auc:.3f}")
+            ax.plot(fpr, tpr, label=f"ROC-AUC = {roc_auc:.3f}", color='green')
             ax.plot([0, 1], [0, 1], linestyle="--", color="gray")
             ax.set_xlabel("False Positive Rate")
             ax.set_ylabel("True Positive Rate")
@@ -234,7 +234,7 @@ def run():
             # Feature Importance
             size = st.slider("Top Features Selected", min_value=1, max_value=30, value=10,step=1)
             fig, ax = plt.subplots(figsize=(8, 6))
-            sns.barplot(x="Importance", y="Feature", data=importance_df.iloc[0:size,], ax=ax)
+            sns.barplot(x="Importance", y="Feature", data=importance_df.iloc[0:size,], ax=ax, color='g')
             ax.set_title("Feature Importance")
             ax.grid()
             st.pyplot(fig)
@@ -242,7 +242,7 @@ def run():
         with col2:
             # Certainty Plot
             fig, ax = plt.subplots(figsize=(8,6))
-            ax.hist(certainty, bins='auto', color="purple", alpha=0.7)
+            ax.hist(certainty, bins='auto', color="green", alpha=0.8)
             ax.set_title("Certainty Histogram")
             ax.set_xlabel("Certainty (Class 1 Prob - Class 0 Prob)")
             ax.set_ylabel("Frequency")
