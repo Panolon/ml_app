@@ -7,7 +7,7 @@ def run():
     # Upload Dataset
     uploaded_file = st.sidebar.file_uploader("Upload your CSV file", type="csv")
     if uploaded_file:
-        data = pd.read_csv(uploaded_file)
+        data = pd.read_csv(uploaded_file, delimiter="\t",encoding='utf16', decimal=',', parse_dates=[0,5,7,9,11,19,23], dayfirst=True)
         st.write("Dataset Preview:", data.head())
         st.write(f"Dataset shape: {data.shape}")
 
@@ -61,8 +61,7 @@ def run():
                                            max_selections=1,
                                            default=None)
         if index_col:
-            features.set_index(index_col[0], inplace=True)
-
+                features.set_index(index_col[0], inplace=True)
 
         # Choose label column
         target_column = st.sidebar.selectbox("Select target column",
@@ -249,7 +248,9 @@ def run():
             # Create the plot
             fig, ax = plt.subplots(figsize=(8, 6))
             sns.barplot(x='Coefficient', y='Feature',
-                    data=coef_df.iloc[0:size], 
+                    data=coef_df.iloc[0:size],
+                    hue='Feature',
+                    legend=False,
                     palette=['yellow' if x < 0 else 'green' for x in coef_df.iloc[0:size]['Coefficient']],
                     ax=ax)
             

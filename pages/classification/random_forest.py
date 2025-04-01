@@ -7,7 +7,7 @@ def run():
     # Upload Dataset
     uploaded_file = st.sidebar.file_uploader("Upload your CSV file", type="csv")
     if uploaded_file:
-        data = pd.read_csv(uploaded_file)
+        data = pd.read_csv(uploaded_file,  delimiter=";")
         st.write("Dataset Preview:", data.head())
         st.write(f"Dataset shape: {data.shape}")
 
