@@ -7,12 +7,16 @@ def run():
     # Upload Dataset
     uploaded_file = st.sidebar.file_uploader("Upload your CSV file", type="csv")
     if uploaded_file:
-        data = pd.read_csv(uploaded_file, delimiter="\t",encoding='utf16', decimal=',', parse_dates=[0,5,7,9,11,19,23], dayfirst=True)
+        data = pd.read_csv(uploaded_file, delimiter=",",encoding='utf8', decimal=',')
         st.write("Dataset Preview:", data.head())
         st.write(f"Dataset shape: {data.shape}")
 
         # copy data
         features = data.copy()
+
+        ####################################################################################################
+        # Data Preprocessing
+        ####################################################################################################
 
         #handle na values
         if features.isnull().sum().sum() > 0:
@@ -96,7 +100,7 @@ def run():
         feature_selection = st.sidebar.radio("Select feature selection method:", ("All Features", "Random", "Specific"))
         
         if feature_selection == "Random":
-            num_features = int(0.5 * features.shape[1])  # 60% of the total features
+            num_features = int(0.5 * features.shape[1])  # 50% of the total features
             selected_features = np.random.choice(features.columns, num_features, replace=False)
             features = features[selected_features]
             #st.write(f"Randomly selected {num_features} features:", data.head())
@@ -118,9 +122,13 @@ def run():
             features = pd.DataFrame(scaler.fit_transform(features),columns=features.columns)
 
 
+        ###################################################################################################################
+        # END of preprocessing
+        ###################################################################################################################
+
         # Train-Test Split
         test_size = st.sidebar.slider("Test Split Ratio %", min_value=10, max_value=90, step=1, value=25)
-        X_train, X_test, y_train, y_test = train_test_split(features, target, test_size=test_size/100, random_state=42)
+        X_train, X_test, y_train, y_test = train_test_split(features, target, test_size=test_size/100, random_state=1989)
 
         random_state = st.sidebar.slider("Random State", value=42, step=1)
         C = st.sidebar.slider("C",min_value=0.01, max_value=10., value=1.0, step=0.05)
@@ -128,12 +136,6 @@ def run():
         l1_ratio = st.sidebar.slider("l1 ratio",min_value=0., max_value=1., step=0.1, value=0.5)
         class_weight = st.sidebar.selectbox("class weight", options=[None,'balanced'], index=1)
 
-        # Hyperparameter Tuning Widget
-        hyper_tune = st.sidebar.checkbox("Hyper Tune Parameters")
-
-        # Hyperparameter Tuning Logic
-
-        
         # Initialize Classifier
         classifier = LogisticRegression(
             random_state=random_state,
@@ -143,24 +145,109 @@ def run():
             l1_ratio=l1_ratio,
             solver='saga'
         )
-        #train classifier
-        classifier.fit(X_train, y_train)
-        y_pred = classifier.predict(X_test)
-        y_proba = classifier.predict_proba(X_test)
 
-        # Metrics Calculation
-        precision = precision_score(y_test, y_pred, average="binary")
-        recall = recall_score(y_test, y_pred, average="binary")
-        f1 = f1_score(y_test, y_pred, average="binary")
-        roc_auc = None
-        if len(np.unique(target)) == 2:
-            roc_auc = roc_auc_score(y_test, y_proba[:,1])
-            fpr, tpr, thresholds = roc_curve(y_test, y_proba[:, 1])
-        report = pd.DataFrame(classification_report(y_test,y_pred,output_dict=True)).T
-        cm = confusion_matrix(y_test, y_pred)
-        cm_normalized = cm.astype("float") / cm.sum()
-        precisions, recalls, thresholds1 = precision_recall_curve(y_test, y_proba[:, 1])
-        certainty = abs(y_proba[:, 1] - y_proba[:, 0])
+        # Hyperparameter Tuning Widget
+        hyper_tune = st.sidebar.checkbox("Hyper Tune Parameters")
+
+        ####################################################################################################
+        # Hyperparameter Tuning
+        # START
+        ####################################################################################################
+        if hyper_tune:
+            # Initialize Classifier
+            model = LogisticRegression(max_iter=10000, solver='saga', class_weight='balanced')
+
+
+            st.sidebar.subheader("Hyperparameter Tuning")
+            st.sidebar.write("Using Grid Search for hyperparameter tuning.")
+
+            # Scoring Metric Selection
+            scoring_metric = st.sidebar.selectbox("Select scoring metric",
+                options=["accuracy", "f1", "roc_auc", "precision", "recall"]
+            )
+
+            # Cross Validation Folds
+            cv = st.sidebar.slider("Cross Validation Folds", 
+                                   min_value=2, 
+                                   max_value=min(20,int(len(X_train)*0.5)), 
+                                   value=5, 
+                                   step=1)
+            st.sidebar.write(f"Using {cv} folds for cross-validation.")
+
+            if scoring_metric == "f1":
+                scoring = "f1"
+            elif scoring_metric == "accuracy":
+                scoring = "accuracy"
+            elif scoring_metric == "roc_auc":
+                scoring = "roc_auc"
+            elif scoring_metric == "precision":
+                scoring = "precision"
+            elif scoring_metric == "recall":
+                scoring = "recall"
+            
+            param_grid = {
+                'C': [0.001, 0.01, 0.1, 1, 10],
+                'penalty': ['l1', 'l2', 'elasticnet']
+                }
+            
+            if 'elasticnet' in param_grid['penalty']:
+                param_grid['l1_ratio'] = [0.0, 0.25, 0.5, 0.75, 1.0]  # Only used for elasticnet penalty
+
+            # Grid search with 5-fold CV
+            grid_search = GridSearchCV(model, param_grid, cv=cv, scoring=scoring, n_jobs=-1)
+            grid_search.fit(X_train, y_train)
+
+            # Best model
+            best_model = grid_search.best_estimator_
+            st.write(f"\nBest Parameters: {grid_search.best_params_}")
+            st.write(f"Best CV score: {grid_search.best_score_:.4f}")
+
+            st.write(pd.DataFrame(grid_search.cv_results_).sort_values(by='rank_test_score').head(10))
+
+            # Model evaluation
+            y_pred = best_model.predict(X_test)
+            y_proba = best_model.predict_proba(X_test)
+
+            # Metrics Calculation
+            precision = precision_score(y_test, y_pred, average="binary")
+            recall = recall_score(y_test, y_pred, average="binary")
+            f1 = f1_score(y_test, y_pred, average="binary")
+            roc_auc = None
+            if len(np.unique(target)) == 2:
+                roc_auc = roc_auc_score(y_test, y_proba[:,1])
+                fpr, tpr, thresholds = roc_curve(y_test, y_proba[:, 1])
+            report = pd.DataFrame(classification_report(y_test,y_pred,output_dict=True)).T
+            cm = confusion_matrix(y_test, y_pred)
+            cm_normalized = cm.astype("float") / cm.sum()
+            precisions, recalls, thresholds1 = precision_recall_curve(y_test, y_proba[:, 1])
+            certainty = abs(y_proba[:, 1] - y_proba[:, 0])
+
+
+        ##############################################################################################################
+        # End of hyperparameter tuning logic
+        ##############################################################################################################
+
+        # Simple metrics calculation without hyperparameter tuning
+        else:
+
+            #train classifier
+            classifier.fit(X_train, y_train)
+            y_pred = classifier.predict(X_test)
+            y_proba = classifier.predict_proba(X_test)
+
+            # Metrics Calculation
+            precision = precision_score(y_test, y_pred, average="binary")
+            recall = recall_score(y_test, y_pred, average="binary")
+            f1 = f1_score(y_test, y_pred, average="binary")
+            roc_auc = None
+            if len(np.unique(target)) == 2:
+                roc_auc = roc_auc_score(y_test, y_proba[:,1])
+                fpr, tpr, thresholds = roc_curve(y_test, y_proba[:, 1])
+            report = pd.DataFrame(classification_report(y_test,y_pred,output_dict=True)).T
+            cm = confusion_matrix(y_test, y_pred)
+            cm_normalized = cm.astype("float") / cm.sum()
+            precisions, recalls, thresholds1 = precision_recall_curve(y_test, y_proba[:, 1])
+            certainty = abs(y_proba[:, 1] - y_proba[:, 0])
 
         col1, col2 = st.columns(2)
 
@@ -231,8 +318,12 @@ def run():
 
         with col1:
             # Get coefficients and feature names
-            coefficients = classifier.coef_[0]
-            feature_names = X_train.columns
+            if hyper_tune:
+                coefficients = best_model.coef_[0]
+                feature_names = X_train.columns
+            else:
+                coefficients = classifier.coef_[0]
+                feature_names = features.columns
             
             # Create DataFrame with coefficients
             coef_df = pd.DataFrame({
