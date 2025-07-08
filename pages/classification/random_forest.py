@@ -133,6 +133,7 @@ def run():
         hyper_tune = st.sidebar.checkbox("Hyper Tune Parameters")
 
         # Hyperparameter Tuning Logic
+        #if hyper_tune:
 
         
         # Initialize Classifier

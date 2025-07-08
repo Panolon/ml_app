@@ -263,6 +263,23 @@ def run():
             st.subheader("Classification report")
             st.dataframe(report.style.format({"precision": "{:.2f}", "recall": "{:.2f}", "f1-score": "{:.2f}", "support":"{:.2f}"}))
 
+            if hyper_tune:
+                coefficients = best_model.coef_[0]
+                attributes = features.columns
+            else:
+                coefficients = classifier.coef_[0]
+                attributes = features.columns
+                    
+            # Calculate log odds
+            log_odds = pd.DataFrame({
+                'Feature': attributes,
+                'Coefficient': coefficients,
+                'Odds': np.exp(coefficients),
+                'Probabilities': np.exp(coefficients) / (1 + np.exp(coefficients))
+                })
+
+            st.write("\nLog Odds Analysis:")
+            st.write(log_odds.sort_values('Coefficient', ascending=False))
 
         #plots
         col1, col2 = st.columns(2)
@@ -365,3 +382,5 @@ def run():
             ax.set_ylabel("Frequency")
             ax.grid()
             st.pyplot(fig)
+
+
