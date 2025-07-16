@@ -2,6 +2,8 @@
 
 This repository contains a **Streamlit-based Machine Learning Application** designed to provide an intuitive and interactive interface for performing essential machine learning tasks, including **Classification**, **Clustering**, and **Regression**. It is ideal for beginners, educators, and professionals looking for a quick way to experiment with various machine learning models.
 
+**This project is a work in progress and will continue to evolve with more features and improvements. Contributions are welcome!**
+
 ---
 
 ## Features

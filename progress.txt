@@ -34,3 +34,53 @@ Structure:
 3. Regression
 
 4. Dimensionality Reduction
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+___________________________________________________________________________________
+Structure of models
+--------------------
+PREPROCESSING
+-------------------------------------------------------------------------------
+- upload the csv file, with target value at the last column
+- handle missing values
+    - Impute missing values with mean, median, mode or a custom value
+    - let the user select any row/column removal
+- select index
+- select target (last column default)
+- encoding
+    - label encoding : transform each str value to nominal using levels
+    - One-hot encoding : create np.ones() for each level of a feature
+- select if you want to standardise the data (default is yes)
+-----------------------------------------------------------------------------
+SPLIT DATA
+-----------------------------------------------------------------------------
+- train-test split  (25% is the default option)
+- random state (42 as always)
+-----------------------------------------------------------------------------
+PARAMETER INITIALIZATION
+-----------------------------------------------------------------------------
+- numbers of Estimators
+- max features
+- bootstrap 
+- oob score 
+- class weight 
+- criterion 
+
+----------------------------------------
+TASKS
+----------------------------------------
+- configure server.maxUploadSize at config.toml
+
+Tuesday, 8th July 2025
+----------------------
+    I've updated the classification bar to multiple tabs and assigned unique keys to each model. Also inside fox
+I found a file pyvenc.cfg which has the commands to execute python for the venv. They are very crucial and perhaps
+this is the reason it crashes all the time. I've changed it in order to isolate the project and be safe.
+
+
+
+
+
+
+
+

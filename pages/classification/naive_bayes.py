@@ -1,10 +1,28 @@
-from imports import *
+import streamlit as st
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import (precision_score, recall_score, f1_score,
+                             roc_auc_score, confusion_matrix,
+                                precision_recall_curve, roc_curve,
+                                classification_report)
 
 def run():
     st.subheader("Naive Bayes Classifier")
     st.write("Upload your data to train a Naive Bayes Classifier.")
 
-    uploaded_file = st.sidebar.file_uploader("Upload your CSV file", type="csv")
+    uploaded_file = st.file_uploader(
+        label="Upload your CSV file", 
+        key="nb_uploader",
+        help="Upload a CSV file containing your dataset. The last column will be treated as the target variable.",
+        accept_multiple_files=False,
+        label_visibility="collapsed",
+        type="csv"
+    )
     if uploaded_file:
         data = pd.read_csv(uploaded_file, index_col=0)
         st.write("Dataset Preview:", data.head())

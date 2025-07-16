@@ -1,10 +1,35 @@
-from imports import *
+import streamlit as st
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.metrics import (silhouette_score, silhouette_samples,
+                             calinski_harabasz_score, adjusted_rand_score,
+                                normalized_mutual_info_score, homogeneity_score,
+                                completeness_score, v_measure_score)
+from sklearn.decomposition import PCA
+from sklearn.metrics import silhouette_samples
+from sklearn.metrics import silhouette_score, calinski_harabasz_score
+from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score
+from sklearn.metrics import homogeneity_score, completeness_score, v_measure_score
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 
 def run():
     st.subheader("K Means Clustering")
     st.write("Upload your data to train a K Means algorithm.")
     
-    uploaded_file = st.sidebar.file_uploader("Upload your CSV file", type="csv")
+    uploaded_file = st.file_uploader(
+        label="Upload your CSV file",
+        key="kmeans_uploader",
+        help="Upload a CSV file containing your dataset. The last column will be treated as the target variable.",
+        accept_multiple_files=False,
+        label_visibility="collapsed",
+        type="csv"
+    )
     if uploaded_file:
         data = pd.read_csv(uploaded_file)
         st.write("Dataset Preview:", data.head())

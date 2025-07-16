@@ -1,15 +1,20 @@
 import streamlit as st
-from imports import *
+import pandas as pd
+import numpy as np
 
 # Page configuration
-st.set_page_config(page_title="ML App", layout="wide")
+st.set_page_config(page_title="Machine Learning with scikit-learn", layout="wide",initial_sidebar_state="expanded",
+                   page_icon=":robot_face:"
+                   )
 
 # Sidebar navigation
 st.sidebar.title("Navigation")
-selected_task = st.sidebar.radio("Select a Task", ["Home", "Classification", "Clustering", "Regression","Dimensionality Reduction"])
+selected_task = st.sidebar.radio("Select a Task", 
+                                 ["Home", "Classification", "Clustering", "Regression","Dimensionality Reduction"]
+                                 )
 
 if selected_task == "Home":
-    st.title("Machine Learning with scikit-learn")
+    #st.title("Machine Learning with scikit-learn")
     st.write("Select a task from the sidebar.")
 
 #########################
@@ -17,26 +22,29 @@ if selected_task == "Home":
 #########################
 elif selected_task == "Classification":
     from pages.classification import random_forest, xgboost, svm, knn, naive_bayes, logistic_regression
-    st.subheader("Choose a Classification task to proceed: ")
+    #st.subheader("Choose a Classification task to proceed: ")
 
     # Select Classifier
-    selected_model = st.radio("Select a Model", ["Random Forest", "XGBoost", "SVM", "KNN", "Naive Bayes", "Logistic Regression"])
-    if selected_model == "Random Forest":
+    rmforest_tab, xgboost_tab, svm_tab, knn_tab, naive_bayes_tab, logistic_regression_tab = st.tabs([
+        "Random Forest", "XGBoost", "SVM", "KNN", "Naive Bayes", "Logistic Regression"
+        ])
+    
+    with rmforest_tab:
         random_forest.run()
 
-    if selected_model == "XGBoost":
+    with xgboost_tab:
         xgboost.run()
 
-    if selected_model == "KNN":
+    with knn_tab:
         knn.run()
 
-    if selected_model == "Naive Bayes":
+    with naive_bayes_tab:
         naive_bayes.run()
 
-    if selected_model == "SVM":
+    with svm_tab:
         svm.run()
 
-    if selected_model == "Logistic Regression":
+    with logistic_regression_tab    :
         logistic_regression.run()
 
 #####################
