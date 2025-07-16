@@ -3,7 +3,9 @@ import pandas as pd
 import numpy as np
 
 # Page configuration
-st.set_page_config(page_title="Machine Learning with scikit-learn", layout="wide",initial_sidebar_state="expanded",
+st.set_page_config(page_title="Machine Learning with scikit-learn", 
+                   layout="wide",
+                   initial_sidebar_state="expanded",
                    page_icon=":robot_face:"
                    )
 
