@@ -6,7 +6,7 @@ import numpy as np
 st.set_page_config(page_title="Machine Learning with scikit-learn", 
                    layout="wide",
                    initial_sidebar_state="expanded",
-                   page_icon=":robot_face:"
+                   page_icon="🎲"
                    )
 
 # Sidebar navigation
@@ -17,13 +17,16 @@ selected_task = st.sidebar.radio("Select a Task",
 
 if selected_task == "Home":
     #st.title("Machine Learning with scikit-learn")
-    st.write("Select a task from the sidebar.")
+    from utils.util_functions import intro
+
+    intro()
 
 #########################
 # Classification task  ##
 #########################
 elif selected_task == "Classification":
     from pages.classification import random_forest, xgboost, svm, knn, naive_bayes, logistic_regression
+    from utils.util_functions import under_construction
     #st.subheader("Choose a Classification task to proceed: ")
 
     # Select Classifier
@@ -35,7 +38,8 @@ elif selected_task == "Classification":
         random_forest.run()
 
     with xgboost_tab:
-        xgboost.run()
+        under_construction()
+        #xgboost.run()
 
     with knn_tab:
         knn.run()
