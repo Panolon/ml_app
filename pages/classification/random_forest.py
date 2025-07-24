@@ -77,17 +77,9 @@ def plot_woe_line(df: pd.DataFrame, feature: str, target: str, default_bins: int
 initiate_scores()
 
 def run():
-    # Upload Dataset
-    uploaded_file = st.file_uploader(
-        label="Upload your CSV file",
-        key="rf_uploader",
-        help="Upload a CSV file containing your dataset. The last column will be treated as the target variable.",
-        accept_multiple_files=False,
-        label_visibility="collapsed",
-        type="csv"
-    )
-    if uploaded_file:
-        data = pd.read_csv(uploaded_file,  delimiter=",")
+    
+    if 'uploaded_file' in st.session_state:
+        data = pd.read_csv(st.session_state.uploaded_file,  delimiter=",")
         # copy of the data
         features = data.copy()
         st.write("**Preprocessing**")
@@ -399,5 +391,6 @@ def run():
             st.pyplot(fig)
 
         plot_woe_line(pd.concat([features, pd.Series(target, name='Creditability')], axis=1), feature='Credit_Amount', target='Creditability', default_bins=5)
-
+    else:
+        st.info("Please upload a file to start data exploration!")
 run()

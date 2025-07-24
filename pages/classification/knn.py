@@ -14,17 +14,9 @@ from sklearn.metrics import (precision_score, recall_score, f1_score,
 def run():
     st.subheader("K-Nearest Neighbors Classifier")
     st.write("Upload your data to train a K-Nearest Neighbors Classifier.")
-    
-    uploaded_file = st.file_uploader(
-        label="Upload your CSV file", 
-        key="knn_uploader",
-        help="Upload a CSV file containing your dataset. The last column will be treated as the target variable.",
-        accept_multiple_files=False,
-        label_visibility="collapsed",
-        type="csv"
-    )
-    if uploaded_file:
-        data = pd.read_csv(uploaded_file)
+
+    if 'uploaded_file' in st.session_state:
+        data = pd.read_csv(st.session_state.uploaded_file)
         st.write("Dataset Preview:", data.head())
         st.write(f"Dataset shape: {data.shape}")
 
@@ -237,4 +229,5 @@ def run():
             ax.set_ylabel("Frequency")
             ax.grid()
             st.pyplot(fig)
-
+    else:
+        st.info("Please upload your data to start exporation!")

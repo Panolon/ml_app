@@ -15,6 +15,18 @@ selected_task = st.sidebar.radio("Select a Task",
                                  ["Home", "Classification", "Clustering", "Regression","Dimensionality Reduction"]
                                  )
 
+ # Upload Dataset globally
+uploaded_file = st.file_uploader(
+    label="Upload your CSV file",
+    key="main_file_uploader",
+    help="Upload a CSV file containing your dataset. The last column will be treated as the target variable.",
+    accept_multiple_files=False,
+    label_visibility="collapsed",
+    type="csv"
+)
+if uploaded_file:
+        st.session_state["uploaded_file"] = uploaded_file
+
 if selected_task == "Home":
     #st.title("Machine Learning with scikit-learn")
     from utils.util_functions import intro
@@ -33,7 +45,7 @@ elif selected_task == "Classification":
     rmforest_tab, xgboost_tab, svm_tab, knn_tab, naive_bayes_tab, logistic_regression_tab = st.tabs([
         "Random Forest", "XGBoost", "SVM", "KNN", "Naive Bayes", "Logistic Regression"
         ])
-    
+
     with rmforest_tab:
         random_forest.run()
 
