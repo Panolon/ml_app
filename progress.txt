@@ -39,18 +39,27 @@ Structure:
 ___________________________________________________________________________________
 Structure of models
 --------------------
+
+- Import libraries
+- Constant values
+- Seaborn set
+- Local functions [initiate scores]
+
 PREPROCESSING
--------------------------------------------------------------------------------
-- upload the csv file, with target value at the last column
-- handle missing values
+------------------------------------------------------------------------------------
+- Upload the csv file, with target value at the last column and delimiter ',' comma. If not tell the user to modify accordingly
+- Make a copy of the data and start proprocessing
+- Handle missing values
     - Impute missing values with mean, median, mode or a custom value
     - let the user select any row/column removal
-- select index
-- select target (last column default)
-- encoding
+- Select index
+- Select target (last column by default is used)
+- Encoding
     - label encoding : transform each str value to nominal using levels
     - One-hot encoding : create np.ones() for each level of a feature
-- select if you want to standardise the data (default is yes)
+- Feature selection : The user selects among all features, specific or 50% random
+- Select if you want to standardise the data (default is yes)
+
 -----------------------------------------------------------------------------
 SPLIT DATA
 -----------------------------------------------------------------------------
@@ -70,17 +79,3 @@ PARAMETER INITIALIZATION
 TASKS
 ----------------------------------------
 - configure server.maxUploadSize at config.toml
-
-Tuesday, 8th July 2025
-----------------------
-    I've updated the classification bar to multiple tabs and assigned unique keys to each model. Also inside fox
-I found a file pyvenc.cfg which has the commands to execute python for the venv. They are very crucial and perhaps
-this is the reason it crashes all the time. I've changed it in order to isolate the project and be safe.
-
-
-
-
-
-
-
-

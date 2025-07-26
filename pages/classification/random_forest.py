@@ -10,9 +10,6 @@ from sklearn.metrics import (precision_score, recall_score, f1_score,
                              roc_auc_score, confusion_matrix,
                              precision_recall_curve, roc_curve,
                                 classification_report, accuracy_score)
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import precision_recall_curve, roc_curve
-
 SHOW_BORDERS = False
 sns.set_style("whitegrid")
 
@@ -75,6 +72,17 @@ def plot_woe_line(df: pd.DataFrame, feature: str, target: str, default_bins: int
 
 # run only at the first read of the file \ stay outside run()
 initiate_scores()
+
+uploaded_file = st.file_uploader(
+    label="Upload your CSV file",
+    key="main_file_uploader",
+    help="Upload a CSV file containing your dataset. The last column will be treated as the target variable.",
+    accept_multiple_files=False,
+    label_visibility="collapsed",
+    type="csv"
+)
+if uploaded_file:
+        st.session_state["uploaded_file"] = uploaded_file
 
 def run():
     
@@ -170,7 +178,7 @@ def run():
         feature_selection = st.sidebar.radio("Select feature selection method:", ("All Features", "Random", "Specific"))
         
         if feature_selection == "Random":
-            num_features = int(0.5 * features.shape[1])  # 60% of the total features
+            num_features = int(0.5 * features.shape[1])  # 50% of the total features
             selected_features = np.random.choice(features.columns, num_features, replace=False)
             features = features[selected_features]
     
@@ -206,10 +214,6 @@ def run():
 
         # Hyperparameter Tuning Widget
         hyper_tune = st.sidebar.checkbox("Hyper Tune Parameters")
-
-        # Hyperparameter Tuning Logic
-        #if hyper_tune:
-
         
         # Initialize Classifier----------------------------------------------------------------------------------------------------------------------------------
         classifier = RandomForestClassifier(
@@ -254,6 +258,7 @@ def run():
             with col5:
                 st.metric(label="Accuracy", value=f"{accuracy:.2f}" ,delta=f"{100*(accuracy - st.session_state.accuracy) / st.session_state.accuracy :.2f}%", border=SHOW_BORDERS)
                 st.session_state.accuracy = accuracy
+
         st.write("**Classification report**")
         with st.container():
             col1,col2 = st.columns([0.5, 0.5], gap='small', vertical_alignment='top',border=SHOW_BORDERS)
@@ -344,7 +349,7 @@ def run():
                                 **({"vertical_alignment": "top", "border": SHOW_BORDERS} if hasattr(st, "columns") else {}))
             with col1:
                 # Feature Importance
-                size = st.slider("Top Features Selected", min_value=1, max_value=min(30, len(importance_df)), value=10, step=1)
+                size = st.sidebar.slider("Top Features Selected", min_value=1, max_value=min(30, len(importance_df)), value=10, step=1)
                 fig_imp, ax_imp = plt.subplots(figsize=(6, 4.5))
                 sns.barplot(
                     x="Importance", 
@@ -390,7 +395,8 @@ def run():
             fig.tight_layout()
             st.pyplot(fig)
 
-        plot_woe_line(pd.concat([features, pd.Series(target, name='Creditability')], axis=1), feature='Credit_Amount', target='Creditability', default_bins=5)
+        selected_columns = st.multiselect("Select specific features", options=features.columns)
+        #plot_woe_line(pd.concat([features, pd.Series(target, name='Creditability')], axis=1), feature=selected_columns, target='Creditability', default_bins=5)
     else:
         st.info("Please upload a file to start data exploration!")
 run()
