@@ -24,51 +24,14 @@ def initiate_scores():
         st.session_state.rocaucscore = 0.01
     if 'accuracy' not in st.session_state:
         st.session_state.accuracy = 0.01
-
-def plot_woe_line(df: pd.DataFrame, feature: str, target: str, default_bins: int = 5):
-    # User slider for number of bins
-    nbins = st.slider("Select number of bins", min_value=2, max_value=20, value=default_bins, step=1)
-
-    # Drop rows with missing values in the selected feature or target
-    data = df[[feature, target]].dropna()
-
-    try:
-        # Bin the feature
-        binned = pd.qcut(data[feature], q=nbins, duplicates='drop')
-    except ValueError:
-        st.warning("⚠️ Not enough unique values to create the selected number of bins.")
-        return
-
-    # Calculate WoE
-    woe_df = pd.DataFrame({
-        'bin': binned,
-        'target': data[target]
-    })
-
-    grouped = woe_df.groupby('bin')['target']
-    stats = pd.DataFrame({
-        'Total': grouped.count(),
-        'Bad': grouped.sum()
-    })
-    stats['Good'] = stats['Total'] - stats['Bad']
-    stats['Dist_Good'] = stats['Good'] / stats['Good'].sum()
-    stats['Dist_Bad'] = stats['Bad'] / stats['Bad'].sum()
-    stats['WoE'] = np.log((stats['Dist_Good'] + 1e-10) / (stats['Dist_Bad'] + 1e-10))
-    stats['IV'] = (stats['Dist_Good'] - stats['Dist_Bad']) * stats['WoE']
-    stats = stats.reset_index()
-    stats['Bin_Label'] = stats['bin'].astype(str)
-    iv = stats['IV'].sum()
-
-    # Plot WoE line
-    fig, ax = plt.subplots(figsize=(8, 5))
-    sns.lineplot(data=stats, x='Bin_Label', y='WoE', marker='o', sort=False, ax=ax, color='darkgreen')
-    ax.set_title(f"WoE by Binned `{feature}` (IV = {iv:.3f})", fontsize=13, fontweight='bold')
-    ax.set_xlabel("Bins")
-    ax.set_ylabel("Weight of Evidence")
-    ax.grid(True, linestyle="--", alpha=0.6)
-    plt.xticks(rotation=45)
-    fig.tight_layout()
-    st.pyplot(fig)
+    if 'true_positives' not in st.session_state:
+        st.session_state.true_positives = 0.01
+    if 'true_negatives' not in st.session_state:
+        st.session_state.true_negatives = 0.01
+    if 'false_positives' not in st.session_state:
+        st.session_state.false_positives = 0.01
+    if 'false_negatives' not in st.session_state:
+        st.session_state.false_negatives = 0.01
 
 # run only at the first read of the file \ stay outside run()
 initiate_scores()
@@ -399,4 +362,4 @@ def run():
         #plot_woe_line(pd.concat([features, pd.Series(target, name='Creditability')], axis=1), feature=selected_columns, target='Creditability', default_bins=5)
     else:
         st.info("Please upload a file to start data exploration!")
-run()
+#run()
