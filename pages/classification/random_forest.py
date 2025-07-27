@@ -33,12 +33,11 @@ def initiate_scores():
     if 'false_negatives' not in st.session_state:
         st.session_state.false_negatives = 0.01
 
-# run only at the first read of the file \ stay outside run()
 initiate_scores()
 
 def run():
     if 'uploaded_file' in st.session_state:
-        data = pd.read_csv(st.session_state.uploaded_file,  delimiter=",")
+        data = pd.read_csv(st.session_state.uploaded_file,  delimiter=",",encoding='utf8', decimal=',')
         # copy of the data
         features = data.copy()
         st.write("**Preprocessing**")
