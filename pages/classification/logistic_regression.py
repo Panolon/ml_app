@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from woe_conversion.woe import WoeConversion
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.linear_model import LogisticRegression
@@ -10,7 +11,7 @@ from sklearn.metrics import (precision_score, recall_score, f1_score,
                              roc_auc_score, confusion_matrix,
                              precision_recall_curve, roc_curve,
                                 classification_report, accuracy_score)
-SHOW_BORDERS = False
+SHOW_BORDERS = True
 sns.set_style("whitegrid")
 
 def initiate_scores():
@@ -119,6 +120,7 @@ def run():
                                              index=len(features.columns)-1
                                             )
         target = features[target_column]
+        target.name = 'target'
         features = features.drop(columns=[target_column])
 
 
@@ -248,7 +250,7 @@ def run():
         st.divider()
         #plots -----------------------------------------------------------------------------------------------------------------------------------------
         with st.container():
-                col1, col2 = st.columns([0.5, 0.5], gap='small', 
+                col1, col2 = st.columns([0.5, 0.5], gap='large', 
                                         **({"vertical_alignment": "top", "border": SHOW_BORDERS} if hasattr(st, "columns") else {}))
                 with col1:
                     # Precision-Recall Plot
@@ -280,23 +282,34 @@ def run():
                     fig2.tight_layout()
                     st.pyplot(fig2)
         with st.container():
-            col1, col2 = st.columns([0.5, 0.5], gap='small', **({"vertical_alignment": "top", "border": SHOW_BORDERS} if hasattr(st, "columns") else {}))
+            col1, col2 = st.columns([0.5, 0.5], gap='large', **({"vertical_alignment": "top", "border": SHOW_BORDERS} if hasattr(st, "columns") else {}))
             with col1:
-            # Confusion Matrix
-                fig_cm, ax_cm = plt.subplots(figsize=(6, 4.5))
-                sns.heatmap(cm_normalized, 
-                            annot=True, 
-                            fmt=".2f", 
-                            cmap="YlGn",
-                            cbar=False,
-                            annot_kws={"size": 12},
-                            linewidths=0.5,
-                            linecolor="black",
-                            ax=ax_cm)
-                ax_cm.set_title("Normalized Confusion Matrix", fontsize=13, fontweight='bold')
-                fig_cm.patch.set_facecolor('#f0f2f6')
-                fig_cm.tight_layout()
-                st.pyplot(fig_cm)
+                coefficients = classifier.coef_[0]
+                feature_names = features.columns
+                # Create DataFrame with coefficients
+                coef_df = pd.DataFrame({
+                    'Feature': feature_names,
+                    'Coefficient': coefficients,
+                    'Abs_Coefficient': np.abs(coefficients)  # For sorting by magnitude
+                }).sort_values('Abs_Coefficient', ascending=False)
+                
+                # Slider for number of features to show
+                size = st.sidebar.slider("Top Features Selected", min_value=1, 
+                                max_value=len(coef_df), value=10, step=1)
+                fig, ax = plt.subplots(figsize=(6, 4.5))
+                sns.barplot(x='Coefficient', y='Feature',
+                        data=coef_df.iloc[0:size],
+                        hue='Feature',
+                        legend=False,
+                        palette=['yellow' if x < 0 else 'green' for x in coef_df.iloc[0:size]['Coefficient']],
+                        ax=ax)
+                ax.axvline(x=0, color='gray', linestyle='--')
+                # Customize plot
+                ax.set_title("Logistic Regression Coefficients")
+                ax.set_xlabel("Coefficient Value (Log Odds)")
+                ax.set_ylabel("Feature")
+                ax.grid(True, axis='x', alpha=0.3)
+                st.pyplot(fig)
             with col2:
                 # Scatter Plot of Class Probabilities
                 fig_scatter, ax_scatter = plt.subplots(figsize=(6, 4.5))
@@ -319,39 +332,7 @@ def run():
                 fig_scatter.tight_layout()
                 st.pyplot(fig_scatter)
         with st.container():
-            with col1:
-                coefficients = classifier.coef_[0]
-                feature_names = features.columns
-                
-                # Create DataFrame with coefficients
-                coef_df = pd.DataFrame({
-                    'Feature': feature_names,
-                    'Coefficient': coefficients,
-                    'Abs_Coefficient': np.abs(coefficients)  # For sorting by magnitude
-                }).sort_values('Abs_Coefficient', ascending=False)
-                
-                # Slider for number of features to show
-                size = st.sidebar.slider("Top Features Selected", min_value=1, 
-                                max_value=len(coef_df), value=10, step=1)
-
-                # Create the plot
-                fig, ax = plt.subplots(figsize=(6, 4.5))
-                sns.barplot(x='Coefficient', y='Feature',
-                        data=coef_df.iloc[0:size],
-                        hue='Feature',
-                        legend=False,
-                        palette=['yellow' if x < 0 else 'green' for x in coef_df.iloc[0:size]['Coefficient']],
-                        ax=ax)
-                # Add vertical line at zero
-                ax.axvline(x=0, color='gray', linestyle='--')
-                # Customize plot
-                ax.set_title("Logistic Regression Coefficients")
-                ax.set_xlabel("Coefficient Value (Log Odds)")
-                ax.set_ylabel("Feature")
-                ax.grid(True, axis='x', alpha=0.3)
-                
-                st.pyplot(fig)
-
+            col1, col2 = st.columns([0.5, 0.5], gap='large', **({"vertical_alignment": "top", "border": SHOW_BORDERS} if hasattr(st, "columns") else {}))
             with col2:
                 # Certainty Plot
                 fig, ax = plt.subplots(figsize=(6,4.5))
@@ -361,6 +342,50 @@ def run():
                 ax.set_ylabel("Frequency")
                 ax.grid()
                 st.pyplot(fig)
+            with col1:
+                IValues = {}
+                y_trainSeries = pd.Series(y_train, index=X_train.index, name='target')
+                trainWoedf = pd.concat([X_train, y_trainSeries],axis=1)
+                woemodel = WoeConversion(binarytarget='target', features=X_train.columns, nbins=14)
+                woemodel.fit(trainWoedf)
+                transformedtrain = woemodel.transform(trainWoedf)
+                for ft in X_train.columns:
+                    ddf = transformedtrain[[ft,'target']]
+                    grouped = ddf.groupby([ft]).agg(['sum','mean','count'])
+                    grouped['good'] = grouped.target['sum'] / grouped.target['count']
+                    grouped['bad'] = 1 - grouped['good']
+                    grouped['diff'] = grouped['good'] - grouped['bad']
+                    grouped['IVbin'] = grouped['diff'] * grouped.index
+                    IValues[ft] = sum(grouped['IVbin'])
+                IValues = pd.Series(IValues, name='IV').sort_values()
+                fig, ax = plt.subplots(figsize=(4.5,5))
+                bars = ax.barh(IValues.index, IValues.values, color='mediumseagreen', alpha=0.75)
+                for bar in bars:
+                    width = bar.get_width()
+                    ax.text(width + 0.005, bar.get_y() + bar.get_height() / 2,
+                            f'{width:.2f}', va='center', fontsize=9)
+                ax.set_title("Information Value (IV) per Feature", fontsize=12)
+                ax.grid(axis='x', linestyle='--', alpha=0.6)
+                st.pyplot(fig)
+
+        st.divider()
+        with st.container():
+            st.write("**Correlation Matrix**")
+            fig, ax = plt.subplots(figsize=(10, 10))
+            sns.heatmap(
+                corr_matrix,
+                annot=True,
+                fmt=".1f",
+                cmap="viridis",
+                linewidths=0.3,
+                square=True,
+                cbar_kws={"shrink": 0.6},
+                ax=ax
+            )
+
+            #ax.set_title("Feature Correlation Matrix", fontsize=14, fontweight="bold")
+            fig.tight_layout()
+            st.pyplot(fig)        
 
     else:
         st.warning("📂 No file, no fun! Upload something so we can start spelunking through your data! 🧭✨")
