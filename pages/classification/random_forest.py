@@ -36,19 +36,7 @@ def initiate_scores():
 # run only at the first read of the file \ stay outside run()
 initiate_scores()
 
-uploaded_file = st.file_uploader(
-    label="Upload your CSV file",
-    key="main_file_uploader",
-    help="Upload a CSV file containing your dataset. The last column will be treated as the target variable.",
-    accept_multiple_files=False,
-    label_visibility="collapsed",
-    type="csv"
-)
-if uploaded_file:
-        st.session_state["uploaded_file"] = uploaded_file
-
 def run():
-    
     if 'uploaded_file' in st.session_state:
         data = pd.read_csv(st.session_state.uploaded_file,  delimiter=",")
         # copy of the data
@@ -342,7 +330,7 @@ def run():
                 fig_cert.tight_layout()
                 st.pyplot(fig_cert)
         with st.container():
-            fig, ax = plt.subplots(figsize=(10, 10))
+            fig, ax = plt.subplots(figsize=(8, 8))
             sns.heatmap(
                 corr_matrix,
                 annot=True,

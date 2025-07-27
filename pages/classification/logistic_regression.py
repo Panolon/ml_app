@@ -11,7 +11,7 @@ from sklearn.metrics import (precision_score, recall_score, f1_score,
                              roc_auc_score, confusion_matrix,
                              precision_recall_curve, roc_curve,
                                 classification_report, accuracy_score)
-SHOW_BORDERS = True
+SHOW_BORDERS = False
 sns.set_style("whitegrid")
 
 def initiate_scores():
@@ -39,9 +39,7 @@ initiate_scores()
 def run():
     if 'uploaded_file' in st.session_state:
         data = pd.read_csv(st.session_state.uploaded_file, delimiter=",",encoding='utf8', decimal=',')
-        # copy data
         features = data.copy()
-        #st.write("**Dataset Preview**")
         with st.container():
             col1,col2 = st.columns([1.,0.1], gap='small', vertical_alignment='top',border=SHOW_BORDERS)
             with col1:

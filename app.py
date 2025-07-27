@@ -42,29 +42,25 @@ elif selected_task == "Classification":
     #st.subheader("Choose a Classification task to proceed: ")
 
     # Select Classifier
-    rmforest_tab, xgboost_tab, svm_tab, knn_tab, naive_bayes_tab, logistic_regression_tab = st.tabs([
-        "Random Forest", "XGBoost", "SVM", "KNN", "Naive Bayes", "Logistic Regression"
-        ])
-
+    logistic_regression_tab, rmforest_tab, xgboost_tab, svm_tab, knn_tab, naive_bayes_tab = st.tabs([
+        "Logistic Regression", "Random Forest", "XGBoost", "SVM", "KNN", "Naive Bayes"
+        ])   
+    with logistic_regression_tab    :
+        logistic_regression.run()
     with rmforest_tab:
         random_forest.run()
-
     with xgboost_tab:
         under_construction()
         #xgboost.run()
-
     with knn_tab:
-        knn.run()
-
+        under_construction()
+        #knn.run()
     with naive_bayes_tab:
-        naive_bayes.run()
-
+        under_construction()
+        #naive_bayes.run()
     with svm_tab:
-        svm.run()
-
-    with logistic_regression_tab    :
-        logistic_regression.run()
-
+        under_construction()
+        #svm.run()
 #####################
 # Clustering task  ##
 #####################
